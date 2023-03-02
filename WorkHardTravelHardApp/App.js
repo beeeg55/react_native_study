@@ -1,6 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { Fontisto } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   StyleSheet,
@@ -13,6 +14,8 @@ import {
 } from "react-native";
 import { theme } from "./colors";
 const STORAGE_KEY = "@toDos";
+const TAB_STATUS_KEY = "@tabStatus";
+
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
@@ -20,8 +23,14 @@ export default function App() {
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
   useEffect(() => {
+    loadTabStatus();
     loadToDos();
   }, []);
+
+  useEffect(() => {
+    saveTabStatus();
+  }, [working]);
+
   const onChangeText = (payload) => {
     setText(payload);
   };
@@ -33,11 +42,15 @@ export default function App() {
   const saveToDos = async (toSave) => {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   };
+
   const addToDo = async () => {
     if (text === "") {
       return;
     }
-    const newToDos = { ...toDos, [Date.now()]: { text, working } };
+    const newToDos = {
+      ...toDos,
+      [Date.now()]: { text, working, checked: false },
+    };
     setToDos(newToDos);
     await saveToDos(newToDos);
     setText("");
@@ -57,6 +70,23 @@ export default function App() {
       },
     ]);
   };
+
+  const checkedToDo = async (key) => {
+    const newToDos = { ...toDos };
+    newToDos[key].checked = true;
+    setToDos(newToDos);
+    await saveToDos(newToDos);
+  };
+  const loadTabStatus = async () => {
+    const s = await AsyncStorage.getItem(TAB_STATUS_KEY);
+    setWorking(JSON.parse(s)["tabStatus"]);
+  };
+
+  const saveTabStatus = async () => {
+    const tabStatus = { tabStatus: working };
+    await AsyncStorage.setItem(TAB_STATUS_KEY, JSON.stringify(tabStatus));
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -89,10 +119,31 @@ export default function App() {
         {Object.keys(toDos).map((key) =>
           toDos[key].working === working ? (
             <View key={key} style={styles.toDo}>
-              <Text style={styles.toDoText}>{toDos[key].text}</Text>
-              <TouchableOpacity onPress={() => deleteToDo(key)}>
-                <Fontisto name="trash" size={18} color="gray" />
-              </TouchableOpacity>
+              <Text
+                style={{
+                  ...styles.toDoText,
+                  textDecorationLine: toDos[key].checked
+                    ? "line-through"
+                    : null,
+                }}
+              >
+                {toDos[key].text}
+              </Text>
+              <View style={styles.btnArea}>
+                <TouchableOpacity
+                  style={styles.btn}
+                  onPress={() => checkedToDo(key)}
+                >
+                  <Fontisto name="checkbox-active" size={18} color="gray" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.btn}
+                  onPress={() => deleteToDo(key)}
+                >
+                  <Fontisto name="trash" size={18} color="gray" />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : null
         )}
@@ -129,7 +180,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.grey,
     marginBottom: 10,
     paddingVertical: 20,
-    paddingHorizontal: 40,
+    paddingHorizontal: 30,
     borderRadius: 15,
     flexDirection: "row",
     alignItems: "center",
@@ -139,5 +190,11 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "500",
+  },
+  btnArea: {
+    flexDirection: "row",
+  },
+  btn: {
+    paddingHorizontal: 3,
   },
 });
