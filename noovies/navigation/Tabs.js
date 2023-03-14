@@ -13,7 +13,7 @@ const Tabs = () => {
 
   return (
     <Tab.Navigator
-      screenContainerStyle={{
+      sceneContainerStyle={{
         backgroundColor: isDark ? BLACK_COLOR : "white",
       }}
       screenOptions={{
