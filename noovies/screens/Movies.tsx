@@ -1,15 +1,15 @@
 import react, { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  Text,
+  View,
+  FlatList,
+} from "react-native";
 import styled from "styled-components/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Swiper from "react-native-swiper";
-import { useColorScheme } from "react-native";
 import Slide from "../components/Slide";
-import {
-  FlatList,
-  RefreshControl,
-  ScrollView,
-} from "react-native-gesture-handler";
 import HMedia from "../components/HMedia";
 import VMedia from "../components/VMedia";
 import { useQuery, useQueryClient } from "react-query";
@@ -90,7 +90,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
   const loading = nowPlayingLoading || upcomingLoading || trendingLoading;
   const refreshing =
     isRefetchingNowPlaying || isRefetchingUpcoming || isRefetchingTrending;
-  console.log(refreshing);
+
   return loading ? (
     <Loader>
       <ActivityIndicator />
