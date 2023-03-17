@@ -1,11 +1,5 @@
 import react, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Dimensions,
-  Text,
-  View,
-  FlatList,
-} from "react-native";
+import { ActivityIndicator, Dimensions, FlatList } from "react-native";
 import styled from "styled-components/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Swiper from "react-native-swiper";
@@ -13,7 +7,7 @@ import Slide from "../components/Slide";
 import HMedia from "../components/HMedia";
 import VMedia from "../components/VMedia";
 import { useQuery, useQueryClient } from "react-query";
-import { moviesApi } from "../api";
+import { MovieResponse, moviesApi } from "../api";
 
 const API_KEY = "28e7b568189d701d8db3348e7f2622f1";
 
@@ -56,46 +50,30 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
     isLoading: nowPlayingLoading,
     data: nowPlayingData,
     isRefetching: isRefetchingNowPlaying,
-  } = useQuery(["movies", "nowPlaying"], moviesApi.nowPlaying);
+  } = useQuery<MovieResponse>(["movies", "nowPlaying"], moviesApi.nowPlaying);
   const {
     isLoading: upcomingLoading,
     data: upcomingData,
     isRefetching: isRefetchingUpcoming,
-  } = useQuery(["movies", "upcoming"], moviesApi.upcoming);
+  } = useQuery<MovieResponse>(["movies", "upcoming"], moviesApi.upcoming);
   const {
     isLoading: trendingLoading,
     data: trendingData,
     isRefetching: isRefetchingTrending,
-  } = useQuery(["movies", "trending"], moviesApi.trending);
+  } = useQuery<MovieResponse>(["movies", "trending"], moviesApi.trending);
   const onRefresh = async () => {
     queryClient.refetchQueries(["movies"]);
   };
-  const renderVMedia = ({ item }) => (
-    <VMedia
-      posterPath={item.poster_path}
-      originalTitle={item.original_title}
-      voteAverage={item.vote_average}
-    />
-  );
 
-  const renderHMedia = ({ item }) => (
-    <HMedia
-      posterPath={item.poster_path}
-      originalTitle={item.original_title}
-      overview={item.overview}
-      releaseDate={item.release_date}
-    />
-  );
   const movieKeyExtractor = (item) => item.id + "";
   const loading = nowPlayingLoading || upcomingLoading || trendingLoading;
   const refreshing =
     isRefetchingNowPlaying || isRefetchingUpcoming || isRefetchingTrending;
-
   return loading ? (
     <Loader>
       <ActivityIndicator />
     </Loader>
-  ) : (
+  ) : upcomingData ? (
     <FlatList
       onRefresh={onRefresh}
       refreshing={refreshing}
@@ -114,11 +92,11 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
               height: SCREEN_HEIGHT / 4,
             }}
           >
-            {nowPlayingData.results.map((movie) => (
+            {nowPlayingData?.results.map((movie) => (
               <Slide
                 key={movie.id}
-                backdropPath={movie.backdrop_path}
-                posterPath={movie.poster_path}
+                backdropPath={movie.backdrop_path || ""}
+                posterPath={movie.poster_path || ""}
                 originalTitle={movie.original_title}
                 voteAverage={movie.vote_average}
                 overview={movie.overview}
@@ -127,25 +105,41 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
           </Swiper>
           <ListContainer>
             <ListTitle>Trending Movies</ListTitle>
-            <TrendingScroll
-              data={trendingData.results}
-              horizontal
-              keyExtractor={movieKeyExtractor}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 30 }}
-              ItemSeparatorComponent={VSeperator}
-              renderItem={renderVMedia}
-            />
+            {trendingData ? (
+              <FlatList
+                style={{ marginTop: 20 }}
+                horizontal
+                data={trendingData.results}
+                keyExtractor={(item) => item.id + ""}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 30 }}
+                ItemSeparatorComponent={VSeperator}
+                renderItem={({ item }) => (
+                  <VMedia
+                    posterPath={item.poster_path || ""}
+                    originalTitle={item.original_title}
+                    voteAverage={item.vote_average}
+                  />
+                )}
+              />
+            ) : null}
           </ListContainer>
           <CommingSoonTitle>Coming soon</CommingSoonTitle>
         </>
       }
       data={upcomingData.results}
-      keyExtractor={movieKeyExtractor}
+      keyExtractor={(item) => item.id + ""}
       ItemSeparatorComponent={HSeperator}
-      renderItem={renderHMedia}
+      renderItem={({ item }) => (
+        <HMedia
+          posterPath={item.poster_path || ""}
+          originalTitle={item.original_title}
+          overview={item.overview}
+          releaseDate={item.release_date}
+        />
+      )}
     />
-  );
+  ) : null;
 };
 
 export default Movies;
