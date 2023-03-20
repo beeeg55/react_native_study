@@ -8,6 +8,7 @@ import HMedia from "../components/HMedia";
 import VMedia from "../components/VMedia";
 import { useQuery, useQueryClient } from "react-query";
 import { MovieResponse, moviesApi } from "../api";
+import HList from "../components/HList";
 
 const API_KEY = "28e7b568189d701d8db3348e7f2622f1";
 
@@ -70,9 +71,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
   const refreshing =
     isRefetchingNowPlaying || isRefetchingUpcoming || isRefetchingTrending;
   return loading ? (
-    <Loader>
-      <ActivityIndicator />
-    </Loader>
+    <Loader />
   ) : upcomingData ? (
     <FlatList
       onRefresh={onRefresh}
@@ -103,27 +102,9 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
               />
             ))}
           </Swiper>
-          <ListContainer>
-            <ListTitle>Trending Movies</ListTitle>
-            {trendingData ? (
-              <FlatList
-                style={{ marginTop: 20 }}
-                horizontal
-                data={trendingData.results}
-                keyExtractor={(item) => item.id + ""}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 30 }}
-                ItemSeparatorComponent={VSeperator}
-                renderItem={({ item }) => (
-                  <VMedia
-                    posterPath={item.poster_path || ""}
-                    originalTitle={item.original_title}
-                    voteAverage={item.vote_average}
-                  />
-                )}
-              />
-            ) : null}
-          </ListContainer>
+          {trendingData ? (
+            <HList title="Trending Movies" data={trendingData.results} />
+          ) : null}
           <CommingSoonTitle>Coming soon</CommingSoonTitle>
         </>
       }
