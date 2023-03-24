@@ -10,6 +10,7 @@ import { useNavigation } from "@react-navigation/native";
 import styled from "styled-components/native";
 import { makeImgPath } from "../utils";
 import Poster from "./Poster";
+import { Movie } from "../api";
 const BgImg = styled.Image``;
 
 const Title = styled.Text<{ isDark: boolean }>`
@@ -44,6 +45,7 @@ interface SlideProps {
   originalTitle: string;
   voteAverage: number;
   overview: string;
+  fullData: Movie;
 }
 const Slide: React.FC<SlideProps> = ({
   backdropPath,
@@ -51,13 +53,14 @@ const Slide: React.FC<SlideProps> = ({
   originalTitle,
   voteAverage,
   overview,
+  fullData,
 }) => {
   const isDark = useColorScheme() === "dark";
   const navigation = useNavigation();
   const goToDetail = () => {
     navigation.navigate("Stack", {
       screen: "Detail",
-      params: { originalTitle },
+      params: { ...fullData },
     });
   };
   return (
